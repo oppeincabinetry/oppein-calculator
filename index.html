@@ -53,12 +53,15 @@
       h1 { font-size: 23px; font-weight: 700; margin: 0; letter-spacing: .2px; color: var(--ink); }
       .sub { color: var(--ink-soft); font-size: 14px; line-height: 1.5; margin: 0 0 4px; }
 
-      /* Frosted glass cards */
+      /* Frosted glass cards — static translucent gradient (no backdrop-filter):
+         the page background behind the cards is near-uniform, so an opaque-leaning
+         gradient is visually identical but costs no repaint on state changes.
+         Real backdrop blur is kept only on the estimate breakdown and the
+         floating total bar. Containment keeps each card's repaints local. */
       section.card {
-        background: linear-gradient(145deg, rgba(255,255,255,.78) 0%, var(--glass-bg) 45%, rgba(255,255,255,.38) 100%);
-        -webkit-backdrop-filter: blur(28px) saturate(1.9);
-        backdrop-filter: blur(28px) saturate(1.9);
+        background: linear-gradient(145deg, rgba(255,255,255,.95) 0%, rgba(255,255,255,.87) 45%, rgba(255,255,255,.79) 100%);
         border: 1px solid var(--glass-border);
+        contain: layout paint;
         border-radius: var(--radius-card);
         box-shadow: 0 24px 48px rgba(33,37,41,.13), 0 4px 14px rgba(33,37,41,.07), inset 0 1px 0 rgba(255,255,255,1), inset 0 -14px 28px -18px rgba(255,255,255,.85), inset 1px 0 0 rgba(255,255,255,.55), inset -1px 0 0 rgba(255,255,255,.35);
         padding: 20px;
@@ -125,9 +128,7 @@
         width: 100%; font-size: 16px; font-weight: 500;
         height: var(--control-h); padding: 0 40px 0 16px;
         border: 1px solid rgba(255,255,255,.95); border-radius: 16px;
-        background-color: rgba(255,255,255,.5);
-        -webkit-backdrop-filter: blur(22px) saturate(1.9);
-        backdrop-filter: blur(22px) saturate(1.9);
+        background-color: rgba(255,255,255,.68);
         box-shadow: inset 0 1px 0 rgba(255,255,255,1), inset 0 -10px 20px -14px rgba(255,255,255,.9), 0 8px 20px rgba(33,37,41,.09);
         appearance: none; -webkit-appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23212529' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -146,9 +147,7 @@
       .stepper {
         display: flex; align-items: stretch; height: var(--control-h);
         border-radius: 999px; overflow: hidden;
-        background: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.42));
-        -webkit-backdrop-filter: blur(22px) saturate(1.9);
-        backdrop-filter: blur(22px) saturate(1.9);
+        background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.66));
         border: 1px solid rgba(255,255,255,.95);
         box-shadow: inset 0 1px 0 rgba(255,255,255,1), inset 0 -8px 16px -10px rgba(255,255,255,.9), 0 8px 20px rgba(33,37,41,.09);
       }
@@ -217,9 +216,7 @@
         flex: 1; appearance: none; font: inherit; font-weight: 600; font-size: 15px;
         height: 50px; border-radius: 999px; cursor: pointer;
         border: 1px solid rgba(255,255,255,.95);
-        background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.45)); color: var(--ink);
-        -webkit-backdrop-filter: blur(20px) saturate(1.8);
-        backdrop-filter: blur(20px) saturate(1.8);
+        background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.72)); color: var(--ink);
         box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 8px 20px rgba(33,37,41,.1);
         transition: transform .15s cubic-bezier(.34,1.56,.64,1);
         -webkit-tap-highlight-color: transparent;
@@ -658,6 +655,11 @@
         var segs = document.querySelectorAll(".seg");
         for (var i = 0; i < segs.length; i++) segLayout(segs[i], animate);
       }
+      function segLayoutIn(container, animate) {
+        if (!container) return;
+        var segs = container.querySelectorAll(".seg");
+        for (var i = 0; i < segs.length; i++) segLayout(segs[i], animate);
+      }
       function segInit() {
         var segs = document.querySelectorAll(".seg");
         for (var i = 0; i < segs.length; i++) {
@@ -827,7 +829,7 @@
         if (detail) {
           if (cornerOn) { detail.classList.add("open"); detail.setAttribute("aria-hidden", "false"); }
           else { detail.classList.remove("open"); detail.setAttribute("aria-hidden", "true"); }
-          requestAnimationFrame(function () { segLayoutAll(true); });
+          requestAnimationFrame(function () { segLayoutIn(detail, true); });
         }
       }
 
@@ -837,7 +839,7 @@
         if (detail) {
           if (masterOn) { detail.classList.add("open"); detail.setAttribute("aria-hidden", "false"); }
           else { detail.classList.remove("open"); detail.setAttribute("aria-hidden", "true"); }
-          requestAnimationFrame(function () { segLayoutAll(true); });
+          requestAnimationFrame(function () { segLayoutIn(detail, true); });
         }
         $("qty-ref").hidden = !(masterOn && state.ref === "Yes");
         $("qty-bep").hidden = !(masterOn && state.bep === "Yes");
@@ -939,70 +941,118 @@
         render(lastResult);
       }
 
-      function row(label, detail, amt, cls) {
-        return "<tr" + (cls ? " class=\"" + cls + "\"" : "") + "><td>" + label +
-          (detail ? "<span class=\"detail\">" + detail + "</span>" : "") +
-          "</td><td class=\"amt\">" + amt + "</td></tr>";
+      /* Diffing renderer: the breakdown rows are built once as real DOM nodes
+         and reused across calcs. Each render only writes the label / detail /
+         amount text and row class that actually changed, and only adds or
+         removes rows when the row set itself changes (crown, panels, tier,
+         assembly) — so a stepper tap repaints text, not a rebuilt table. */
+      var bdBody = null, sumNetEl = null, sumPplEl = null;
+      function makeRowEl() {
+        var tr = document.createElement("tr");
+        var td1 = document.createElement("td");
+        var labelNode = document.createTextNode("");
+        var detail = document.createElement("span");
+        detail.className = "detail";
+        detail.style.display = "none";
+        td1.appendChild(labelNode);
+        td1.appendChild(detail);
+        var td2 = document.createElement("td");
+        td2.className = "amt";
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        tr._labelNode = labelNode;
+        tr._detailEl = detail;
+        tr._amtEl = td2;
+        tr._l = null; tr._d = null; tr._a = null; tr._c = null;
+        return tr;
+      }
+      function setRowEl(tr, d) {
+        if (tr._l !== d[0]) { tr._labelNode.textContent = d[0]; tr._l = d[0]; }
+        var det = d[1] || "";
+        if (tr._d !== det) {
+          tr._detailEl.textContent = det;
+          tr._detailEl.style.display = det ? "" : "none";
+          tr._d = det;
+        }
+        if (tr._a !== d[2]) { tr._amtEl.textContent = d[2]; tr._a = d[2]; }
+        var cls = d[3] || "";
+        if (tr._c !== cls) { tr.className = cls; tr._c = cls; }
+      }
+      function setText(el, txt) {
+        if (el._t !== txt) { el.textContent = txt; el._t = txt; }
       }
 
       function render(r) {
-        var html = "";
+        if (!bdBody) {
+          bdBody = $("breakdown-body");
+          sumNetEl = $("sum-net");
+          sumPplEl = $("sum-ppl");
+        }
+        var rows = [];
         var baseDetail = (r.baseDesign ? r.baseDesign : "No cabinets for this run");
         if (r.tkPcs > 0) {
           baseDetail += " + " + r.tkPcs + "\u00D7 TK8 " + money(r.accLow.tk8) + " toe kick";
         }
         baseDetail += " \u00B7 " + ft(r.baseL) + " ft \u00B7 " + r.lowers + " / " + r.box;
-        html += row("Base cabinets (incl. toe kick)", baseDetail, money(r.baseAmt));
-        html += row("Wall cabinets " + r.wallH + "\u2033",
+        rows.push(["Base cabinets (incl. toe kick)", baseDetail, money(r.baseAmt), ""]);
+        rows.push(["Wall cabinets " + r.wallH + "\u2033",
           (r.wallDesign ? r.wallDesign : "No cabinets for this run") + " \u00B7 " + ft(r.wallL) + " ft \u00B7 " + r.uppers,
-          money(r.wallAmt));
-        html += row("Tall cabinets " + r.tallH + "\u2033",
+          money(r.wallAmt), ""]);
+        rows.push(["Tall cabinets " + r.tallH + "\u2033",
           (r.tallDesign ? r.tallDesign : "No cabinets for this run") + " \u00B7 " + ft(r.tallL) + " ft \u00B7 " + r.lowers,
-          money(r.tallAmt));
+          money(r.tallAmt), ""]);
         if (state.crown === "Yes") {
-          html += row("Crown moulding",
+          rows.push(["Crown moulding",
             r.crownPcs + " pc \u00D7 " + money(r.accUp.crown) + ((r.accUp.crownCv || 0) > 0 ? " (TF696 + CVCM)" : " (TF696)"),
-            money(r.crownAmt));
+            money(r.crownAmt), ""]);
         } else {
-          html += row("Crown moulding", "Not included", "\u2014", "off");
+          rows.push(["Crown moulding", "Not included", "\u2014", "off"]);
         }
         if (r.panelsMaster !== "Yes") {
-          html += row("Finish panels", "Not included", "\u2014", "off");
+          rows.push(["Finish panels", "Not included", "\u2014", "off"]);
         } else if (state.ref === "Yes") {
-          html += row("REF panels", r.refQty + "\u00D7 REF2496 \u00D7 " + money(r.accLow.ref) + " \u00B7 " + r.lowers, money(r.refAmt));
+          rows.push(["REF panels", r.refQty + "\u00D7 REF2496 \u00D7 " + money(r.accLow.ref) + " \u00B7 " + r.lowers, money(r.refAmt), ""]);
         } else {
-          html += row("REF panels", "Not included", "\u2014", "off");
+          rows.push(["REF panels", "Not included", "\u2014", "off"]);
         }
         if (r.panelsMaster === "Yes" && state.bep === "Yes") {
-          html += row("BEP panels", r.bepQty + "\u00D7 BEP24 \u00D7 " + money(r.accLow.bep) + " \u00B7 " + r.lowers, money(r.bepAmt));
+          rows.push(["BEP panels", r.bepQty + "\u00D7 BEP24 \u00D7 " + money(r.accLow.bep) + " \u00B7 " + r.lowers, money(r.bepAmt), ""]);
         } else if (r.panelsMaster === "Yes") {
-          html += row("BEP panels", "Not included", "\u2014", "off");
+          rows.push(["BEP panels", "Not included", "\u2014", "off"]);
         }
         if (r.panelsMaster === "Yes" && state.wep === "Yes") {
-          html += row("WEP panels", r.wepQty + "\u00D7 WEP" + r.wallH + " \u00D7 " + money(r.accUp["wep" + r.wallH]) + " \u00B7 " + r.uppers, money(r.wepAmt));
+          rows.push(["WEP panels", r.wepQty + "\u00D7 WEP" + r.wallH + " \u00D7 " + money(r.accUp["wep" + r.wallH]) + " \u00B7 " + r.uppers, money(r.wepAmt), ""]);
         } else if (r.panelsMaster === "Yes") {
-          html += row("WEP panels", "Not included", "\u2014", "off");
+          rows.push(["WEP panels", "Not included", "\u2014", "off"]);
         }
-        html += row("Cabinets subtotal", "", money(r.subtotal), "subtotal");
+        rows.push(["Cabinets subtotal", "", money(r.subtotal), "subtotal"]);
         if (r.mult !== null) {
-          html += row("Less dealer discount",
+          rows.push(["Less dealer discount",
             "Tier " + r.tier + " \u00B7 \u00D7" + r.mult + " on cabinets",
-            money(r.discount), "discount");
+            money(r.discount), "discount"]);
         } else {
-          html += row("Less dealer discount", "No tier selected", "\u2014", "off");
+          rows.push(["Less dealer discount", "No tier selected", "\u2014", "off"]);
         }
         if (state.asm === "Assembled") {
-          html += row("Assembly",
+          rows.push(["Assembly",
             money(r.asmBase) + " base + " + money(r.asmWall) + " wall + " + money(r.asmTall) + " tall \u00B7 per designed cabinet \u00B7 never discounted",
-            money(r.asmAmt));
+            money(r.asmAmt), ""]);
         } else {
-          html += row("Assembly", "RTA \u2014 flat-pack, no assembly charge", "\u2014", "off");
+          rows.push(["Assembly", "RTA \u2014 flat-pack, no assembly charge", "\u2014", "off"]);
         }
-        html += row("NET TOTAL", "", money2(r.net), "net");
-        $("breakdown-body").innerHTML = html;
+        rows.push(["NET TOTAL", "", money2(r.net), "net"]);
 
-        $("sum-net").textContent = money2(r.net);
-        $("sum-ppl").textContent = (r.ppl === null) ? "\u2014" : money2(r.ppl);
+        for (var i = 0; i < rows.length; i++) {
+          var tr = bdBody.children[i];
+          if (!tr) { tr = makeRowEl(); bdBody.appendChild(tr); }
+          setRowEl(tr, rows[i]);
+        }
+        while (bdBody.children.length > rows.length) {
+          bdBody.removeChild(bdBody.lastChild);
+        }
+
+        setText(sumNetEl, money2(r.net));
+        setText(sumPplEl, (r.ppl === null) ? "\u2014" : money2(r.ppl));
       }
 
       function resetAll() {
@@ -1095,18 +1145,21 @@
         lines.push("OPPEIN Kitchen Estimate");
         lines.push("Line: " + r.line + " · Box: " + r.box);
         lines.push("Lowers: " + r.lowers + " · Uppers: " + r.uppers);
-        lines.push("Base: " + (r.baseDesign || "\u2014") + (r.tkPcs ? " + " + r.tkPcs + "x TK8 toe kick" : "") + " \u2014 " + money(r.baseAmt));
-        lines.push("Wall (" + r.wallH + "in): " + (r.wallDesign || "\u2014") + " \u2014 " + money(r.wallAmt));
-        lines.push("Tall (" + r.tallH + "in): " + (r.tallDesign || "\u2014") + " \u2014 " + money(r.tallAmt));
-        if (state.crown === "Yes") lines.push("Crown moulding: " + r.crownPcs + " pc x " + money(r.accUp.crown) + ((r.accUp.crownCv || 0) > 0 ? " (TF696 + CVCM)" : " (TF696)") + " \u2014 " + money(r.crownAmt));
-        if (r.panelsMaster === "Yes" && state.ref === "Yes") lines.push("REF panels ×" + r.refQty + ": " + money(r.refAmt));
-        if (r.panelsMaster === "Yes" && state.bep === "Yes") lines.push("BEP panels ×" + r.bepQty + ": " + money(r.bepAmt));
-        if (r.panelsMaster === "Yes" && state.wep === "Yes") lines.push("WEP panels ×" + r.wepQty + ": " + money(r.wepAmt));
-        lines.push("Cabinets subtotal: " + money(r.subtotal));
-        if (r.mult !== null) lines.push("Dealer discount (Tier " + r.tier + ", x" + r.mult + "): " + money(r.discount));
-        if (state.asm === "Assembled") lines.push("Assembly: " + money(r.asmAmt));
+        /* Copy text carries only lines with a real value: runs that were not
+           entered (or price to $0), unselected / $0 crown, panels, discount
+           and assembly are omitted entirely. */
+        if (r.baseAmt > 0) lines.push("Base: " + (r.baseDesign || "\u2014") + (r.tkPcs ? " + " + r.tkPcs + "x TK8 toe kick" : "") + " \u2014 " + money(r.baseAmt));
+        if (r.wallAmt > 0) lines.push("Wall (" + r.wallH + "in): " + (r.wallDesign || "\u2014") + " \u2014 " + money(r.wallAmt));
+        if (r.tallAmt > 0) lines.push("Tall (" + r.tallH + "in): " + (r.tallDesign || "\u2014") + " \u2014 " + money(r.tallAmt));
+        if (state.crown === "Yes" && r.crownAmt > 0) lines.push("Crown moulding: " + r.crownPcs + " pc x " + money(r.accUp.crown) + ((r.accUp.crownCv || 0) > 0 ? " (TF696 + CVCM)" : " (TF696)") + " \u2014 " + money(r.crownAmt));
+        if (r.panelsMaster === "Yes" && state.ref === "Yes" && r.refAmt > 0) lines.push("REF panels ×" + r.refQty + ": " + money(r.refAmt));
+        if (r.panelsMaster === "Yes" && state.bep === "Yes" && r.bepAmt > 0) lines.push("BEP panels ×" + r.bepQty + ": " + money(r.bepAmt));
+        if (r.panelsMaster === "Yes" && state.wep === "Yes" && r.wepAmt > 0) lines.push("WEP panels ×" + r.wepQty + ": " + money(r.wepAmt));
+        if (r.subtotal > 0) lines.push("Cabinets subtotal: " + money(r.subtotal));
+        if (r.mult !== null && r.discount !== 0) lines.push("Dealer discount (Tier " + r.tier + ", x" + r.mult + "): " + money(r.discount));
+        if (r.asmAmt > 0) lines.push("Assembly: " + money(r.asmAmt));
         lines.push("NET TOTAL: " + money2(r.net));
-        lines.push("Price per Lft: " + (r.ppl === null ? "—" : money2(r.ppl)));
+        if (r.ppl !== null) lines.push("Price per Lft: " + money2(r.ppl));
         var text = lines.join("\n");
         function done() {
           $("copied-msg").textContent = "Estimate copied — paste it anywhere.";
@@ -1133,11 +1186,17 @@
       refreshPanels();
       buildColours();
       calc();
-      window.addEventListener("resize", function () { segLayoutAll(false); });
+      var resizeRaf = 0;
+      window.addEventListener("resize", function () {
+        if (resizeRaf) return;
+        resizeRaf = requestAnimationFrame(function () { resizeRaf = 0; segLayoutAll(false); });
+      });
       window.addEventListener("orientationchange", function () { setTimeout(function () { segLayoutAll(false); }, 60); });
       window.addEventListener("load", function () { segLayoutAll(false); });
 
-      /* Splash: original logo file on a light glass card, plain loading bar fills, then fade-out (~1s). Tap to skip. */
+      /* Splash: original logo file on a light glass card. Hidden as soon as the
+         app above is initialised and interactive — no minimum display time.
+         Tap to skip. */
       (function () {
         var splash = document.getElementById("splash");
         if (!splash) return;
@@ -1152,7 +1211,11 @@
         }
         splash.addEventListener("click", hideSplash);
         splash.addEventListener("touchend", hideSplash, { passive: true });
-        setTimeout(hideSplash, 1000);
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", hideSplash);
+        } else {
+          hideSplash();
+        }
       })();
     </script>
   </body>
