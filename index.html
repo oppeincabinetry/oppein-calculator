@@ -8,293 +8,299 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="OPPEIN Calc" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <link rel="icon" href="data:," />
     <title>OPPEIN Kitchen Calculator</title>
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+    <link rel="icon" type="image/png" href="favicon.png" />
     <style>
       :root {
         --orange: #EF6526;
         --orange-dark: #D14E14;
         --ink: #212529;
-        --ink-soft: #495057;
-        --muted: #868E96;
-        --line: #DEE2E6;
-        --bg: #FFFFFF;
-        --panel: #F8F9FA;
-        --panel-strong: #F1F3F5;
+        --ink-soft: #3A3F44;
+        --muted: #6C757D;
+        --line: rgba(33,37,41,.10);
         --good: #1E7A46;
-        --radius: 12px;
+        --glass-bg: rgba(255,255,255,.62);
+        --glass-border: rgba(255,255,255,.85);
+        --control-h: 52px;
+        --radius-card: 22px;
       }
       * { box-sizing: border-box; }
-      html { -webkit-text-size-adjust: 100%; height: 100%; }
+      html { -webkit-text-size-adjust: 100%; overflow-x: hidden; scroll-behavior: smooth; }
       body {
         margin: 0;
-        background: var(--bg);
         color: var(--ink);
-        font-family: "Century Gothic", Futura, "Trebuchet MS", "Segoe UI", sans-serif;
-        font-size: 16px;
-        line-height: 1.45;
-        height: 100dvh;
-        display: flex;
-        flex-direction: column;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 16px; line-height: 1.45;
+        min-height: 100dvh; overflow-x: hidden;
+        padding-bottom: calc(124px + env(safe-area-inset-bottom));
+        background:
+          radial-gradient(720px 420px at 85% -60px, rgba(239,101,38,.14), rgba(239,101,38,0) 62%),
+          radial-gradient(640px 480px at -120px 32%, rgba(239,101,38,.07), rgba(239,101,38,0) 60%),
+          linear-gradient(180deg, #FDFCFB 0%, #F7F5F3 100%);
+        background-attachment: fixed;
+        -webkit-font-smoothing: antialiased;
       }
-      main {
-        flex: 1 1 auto;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        width: 100%;
-      }
-      .wrap {
-        max-width: 560px;
-        margin: 0 auto;
-        padding: 8px 16px 20px;
-      }
-      h1 {
-        font-size: 22px;
-        margin: 0 0 2px;
-        letter-spacing: .2px;
-      }
-      h1 .brand { color: var(--orange); }
-      .sub {
-        color: var(--ink-soft);
-        font-size: 14px;
-        margin: 0 0 12px;
-      }
-      section { margin-bottom: 16px; }
-      h2 {
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 1.2px;
-        color: var(--ink-soft);
-        margin: 0 0 8px;
-        border-bottom: 2px solid var(--ink);
-        padding-bottom: 5px;
-      }
-      label.field-label {
-        display: block;
-        font-size: 14px;
-        font-weight: 700;
-        margin: 10px 0 5px;
-      }
-      label.field-label:first-of-type { margin-top: 0; }
-      .hint { font-weight: 400; color: var(--muted); font-size: 13px; }
+      main { display: block; width: 100%; }
+      .wrap { max-width: 560px; margin: 0 auto; padding: 0 16px 8px; }
 
-      /* Segmented control */
+      /* Header — solid and crisp, logo untouched */
+      .app-header { background: transparent; padding: calc(18px + env(safe-area-inset-top)) 2px 4px; position: relative; z-index: 2; }
+      h1 { font-size: 23px; font-weight: 700; margin: 0 0 4px; letter-spacing: .2px; color: var(--ink); }
+      h1 .brand { color: var(--orange); }
+      .sub { color: var(--ink-soft); font-size: 14px; line-height: 1.5; margin: 0 0 4px; }
+
+      /* Frosted glass cards */
+      section.card {
+        background: var(--glass-bg);
+        -webkit-backdrop-filter: blur(18px) saturate(1.6);
+        backdrop-filter: blur(18px) saturate(1.6);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-card);
+        box-shadow: 0 1px 2px rgba(33,37,41,.05), 0 10px 30px rgba(33,37,41,.07), inset 0 1px 0 rgba(255,255,255,.9);
+        padding: 20px;
+        margin: 16px 0 0;
+      }
+      h2 {
+        font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px;
+        color: var(--ink-soft); margin: 0 0 16px;
+      }
+      .field { margin: 0 0 20px; }
+      .field:last-child { margin-bottom: 0; }
+      .field-label { display: block; font-size: 15px; font-weight: 600; color: var(--ink); margin: 0 0 8px; line-height: 1.35; }
+      .hint { font-weight: 400; color: var(--muted); font-size: 13px; }
+      .seg-note { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+
+      /* Segmented controls — glass pills */
       .seg {
-        display: flex;
-        gap: 0;
-        border: 1.5px solid var(--ink);
-        border-radius: var(--radius);
-        overflow: hidden;
+        display: flex; gap: 4px; padding: 4px;
+        background: rgba(255,255,255,.55);
+        -webkit-backdrop-filter: blur(12px) saturate(1.5);
+        backdrop-filter: blur(12px) saturate(1.5);
+        border: 1px solid rgba(255,255,255,.9);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.95), inset 0 -1px 2px rgba(33,37,41,.05), 0 2px 8px rgba(33,37,41,.06);
+        border-radius: 999px;
       }
       .seg button {
-        flex: 1 1 0;
-        appearance: none;
-        border: 0;
-        border-right: 1.5px solid var(--ink);
-        background: #fff;
-        color: var(--ink);
-        font: inherit;
-        font-weight: 700;
-        font-size: 16px;
-        min-height: 50px;
-        padding: 10px 6px;
-        cursor: pointer;
+        flex: 1 1 0; appearance: none; border: 0; border-radius: 999px;
+        background: transparent; color: var(--ink);
+        font: inherit; font-weight: 600; font-size: 15px;
+        min-height: 44px; padding: 8px 6px; cursor: pointer;
+        transition: transform .18s cubic-bezier(.34,1.56,.64,1), background .18s ease, color .18s ease, box-shadow .18s ease;
+        -webkit-tap-highlight-color: transparent;
       }
-      .seg button:last-child { border-right: 0; }
+      .seg button:active { transform: scale(.97); }
       .seg button[aria-pressed="true"] {
-        background: var(--orange);
+        background: linear-gradient(135deg, #F97B3F 0%, var(--orange) 55%, var(--orange-dark) 100%);
         color: #fff;
+        box-shadow: 0 4px 12px rgba(239,101,38,.35), inset 0 1px 0 rgba(255,255,255,.45);
       }
-      .seg button:disabled {
-        background: var(--panel-strong);
-        color: var(--muted);
-        cursor: not-allowed;
-      }
-      .seg-note { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+      .seg button:disabled { color: var(--muted); cursor: not-allowed; opacity: .55; }
 
-      select, input[type="number"] {
-        width: 100%;
-        font: inherit;
-        font-size: 17px;
-        min-height: 50px;
-        padding: 10px 12px;
-        border: 1.5px solid var(--ink);
-        border-radius: var(--radius);
-        background: #fff;
-        color: var(--ink);
+      select, input[type="number"] { font: inherit; color: var(--ink); }
+      select {
+        width: 100%; font-size: 16px; font-weight: 500;
+        height: var(--control-h); padding: 0 40px 0 16px;
+        border: 1px solid rgba(255,255,255,.9); border-radius: 16px;
+        background-color: rgba(255,255,255,.65);
+        -webkit-backdrop-filter: blur(12px) saturate(1.5);
+        backdrop-filter: blur(12px) saturate(1.5);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 2px 8px rgba(33,37,41,.06);
+        appearance: none; -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23212529' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 16px center;
       }
-      select:focus, input:focus { outline: 3px solid rgba(239,101,38,.35); outline-offset: 1px; }
+      select:focus, .stepper input:focus { outline: 3px solid rgba(239,101,38,.35); outline-offset: 1px; }
 
-      /* Steppers */
-      .measure {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 8px 12px;
-        align-items: end;
-        margin-bottom: 10px;
-      }
+      /* Measure rows: label centred against its stepper */
+      .measure { display: grid; grid-template-columns: 1fr auto; column-gap: 16px; align-items: center; margin: 0 0 20px; }
+      .measure:last-child { margin-bottom: 0; }
       .measure .field-label { margin: 0; }
+      .measure .sub-field { grid-column: 1 / -1; margin-top: 12px; }
+      .measure .sub-field .field-label { margin: 0 0 8px; }
+
+      /* Steppers — glass capsules */
       .stepper {
-        display: flex;
-        align-items: stretch;
-        border: 1.5px solid var(--ink);
-        border-radius: var(--radius);
-        overflow: hidden;
+        display: flex; align-items: stretch; height: var(--control-h);
+        border-radius: 999px; overflow: hidden;
+        background: rgba(255,255,255,.6);
+        -webkit-backdrop-filter: blur(12px) saturate(1.5);
+        backdrop-filter: blur(12px) saturate(1.5);
+        border: 1px solid rgba(255,255,255,.9);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 2px 8px rgba(33,37,41,.06);
       }
       .stepper button {
-        appearance: none;
-        border: 0;
-        background: var(--panel);
-        color: var(--ink);
-        font-size: 24px;
-        font-weight: 700;
-        width: 52px;
-        min-height: 50px;
-        cursor: pointer;
-        line-height: 1;
+        appearance: none; border: 0; background: transparent; color: var(--ink);
+        font-size: 24px; font-weight: 600; width: 50px; min-height: 100%;
+        cursor: pointer; line-height: 1; padding: 0;
+        transition: transform .15s cubic-bezier(.34,1.56,.64,1), background .15s ease;
+        -webkit-tap-highlight-color: transparent;
       }
-      .stepper button:active { background: var(--panel-strong); }
+      .stepper button:active { background: rgba(239,101,38,.12); transform: scale(.92); }
       .stepper input {
-        width: 76px;
-        border: 0;
-        border-left: 1.5px solid var(--line);
-        border-right: 1.5px solid var(--line);
-        border-radius: 0;
-        text-align: center;
-        font-size: 19px;
-        font-weight: 700;
-        min-height: 50px;
-        padding: 6px 2px;
-        -moz-appearance: textfield;
-        appearance: textfield;
+        width: 68px; border: 0; border-radius: 0; background: transparent;
+        text-align: center; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums;
+        height: 100%; padding: 0 2px;
+        -moz-appearance: textfield; appearance: textfield;
       }
-      .stepper input::-webkit-outer-spin-button,
-      .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-      .height-seg { grid-column: 1 / -1; }
-      .height-seg .seg button { min-height: 44px; font-size: 15px; }
+      .stepper input::placeholder { color: #ADB5BD; font-weight: 500; }
+      .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      .stepper.small input { width: 52px; }
 
-      .two-col {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
+      /* Panel option rows */
+      .panels-collapse { display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden; transition: grid-template-rows .32s cubic-bezier(.4,0,.2,1), opacity .24s ease, visibility 0s linear .32s; }
+      .panels-collapse.open { grid-template-rows: 1fr; opacity: 1; visibility: visible; transition: grid-template-rows .32s cubic-bezier(.4,0,.2,1), opacity .24s ease, visibility 0s; }
+      .panels-collapse-inner { overflow: hidden; min-height: 0; }
+      .panel-row { padding: 16px 0; border-top: 1px solid var(--line); }
+      .panels-collapse-inner .panel-row:first-child { border-top: 0; padding-top: 4px; }
+      .panel-row:last-child { padding-bottom: 0; }
+      .panel-head { display: grid; grid-template-columns: 1fr minmax(132px, 168px); gap: 16px; align-items: center; }
+      .panel-head .field-label { margin: 0; }
+      .panel-qty { display: grid; grid-template-columns: 1fr auto; column-gap: 16px; align-items: center; margin-top: 12px; }
+      .panel-qty .field-label { margin: 0; font-size: 14px; font-weight: 500; color: var(--ink-soft); }
+      .panel-qty[hidden] { display: none; }
+      @media (prefers-reduced-motion: reduce) {
+        .panels-collapse { transition: none; }
       }
-      @media (max-width: 380px) {
+
+      .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      @media (max-width: 400px) {
         .two-col { grid-template-columns: 1fr; }
-        .stepper input { width: 62px; }
+        .stepper input { width: 56px; }
+        section.card { padding: 18px 16px; }
       }
 
       /* Breakdown */
-      .breakdown {
-        border: 1.5px solid var(--ink);
-        border-radius: var(--radius);
-        overflow: hidden;
-      }
+      .breakdown { border-radius: 16px; overflow: hidden; background: rgba(255,255,255,.5); border: 1px solid rgba(255,255,255,.85); box-shadow: inset 0 1px 0 rgba(255,255,255,.9); }
       .breakdown table { width: 100%; border-collapse: collapse; }
-      .breakdown td {
-        padding: 10px 14px;
-        font-size: 16px;
-        vertical-align: top;
-      }
+      .breakdown td { padding: 12px 14px; font-size: 15px; vertical-align: top; color: var(--ink); }
       .breakdown td.amt { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 700; }
       .breakdown tr + tr td { border-top: 1px solid var(--line); }
-      .breakdown .detail { display: block; font-size: 13px; color: var(--muted); font-weight: 400; }
-      .breakdown tr.subtotal td { background: var(--panel); font-weight: 700; }
+      .breakdown .detail { display: block; font-size: 12.5px; color: var(--muted); font-weight: 400; margin-top: 2px; line-height: 1.45; }
+      .breakdown tr.subtotal td { background: rgba(33,37,41,.045); font-weight: 700; }
       .breakdown tr.discount td.amt { color: var(--good); }
-      .breakdown tr.net td {
-        background: var(--ink);
-        color: #fff;
-        font-size: 19px;
-        font-weight: 700;
-      }
+      .breakdown tr.net td { background: var(--ink); color: #fff; font-size: 18px; font-weight: 700; }
       .breakdown tr.net td.amt { color: var(--orange); }
       .breakdown tr.off td { color: var(--muted); }
       .breakdown tr.off td.amt { font-weight: 400; }
+      .est-note { margin: 12px 2px 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
 
-      .actions { display: flex; gap: 10px; margin-top: 14px; }
+      .actions { display: flex; gap: 12px; margin-top: 16px; }
       .actions button {
-        flex: 1;
-        appearance: none;
-        font: inherit;
-        font-weight: 700;
-        font-size: 15px;
-        min-height: 48px;
-        border-radius: var(--radius);
-        cursor: pointer;
-        border: 1.5px solid var(--ink);
-        background: #fff;
-        color: var(--ink);
+        flex: 1; appearance: none; font: inherit; font-weight: 600; font-size: 15px;
+        height: 50px; border-radius: 999px; cursor: pointer;
+        border: 1px solid rgba(255,255,255,.9);
+        background: rgba(255,255,255,.65); color: var(--ink);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 2px 8px rgba(33,37,41,.06);
+        transition: transform .15s cubic-bezier(.34,1.56,.64,1);
+        -webkit-tap-highlight-color: transparent;
       }
-      .actions button.primary { background: var(--orange); border-color: var(--orange-dark); color: #fff; }
-      .actions button:active { transform: translateY(1px); }
-      .copied { text-align: center; color: var(--good); font-size: 14px; min-height: 20px; margin: 8px 0 0; }
+      .actions button.primary {
+        background: linear-gradient(135deg, #F97B3F 0%, var(--orange) 55%, var(--orange-dark) 100%);
+        border-color: transparent; color: #fff;
+        box-shadow: 0 6px 16px rgba(239,101,38,.32), inset 0 1px 0 rgba(255,255,255,.45);
+      }
+      .actions button:active { transform: scale(.97); }
+      .copied { text-align: center; color: var(--good); font-size: 14px; min-height: 20px; margin: 10px 0 0; }
 
-      /* Sticky summary — in-flow bar pinned under the scrolling content */
+      /* Floating dark glass total bar */
       .summary {
-        flex: 0 0 auto;
-        background: var(--ink);
-        color: #fff;
-        line-height: 1.25;
-        padding: 5px 16px calc(5px + env(safe-area-inset-bottom));
-        box-shadow: 0 -4px 18px rgba(0,0,0,.25);
-        z-index: 10;
+        position: fixed; left: 16px; right: 16px; bottom: calc(12px + env(safe-area-inset-bottom));
+        max-width: 528px; margin: 0 auto; z-index: 50;
+        background: rgba(33,37,41,.88);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        backdrop-filter: blur(20px) saturate(1.4);
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 24px;
+        box-shadow: 0 12px 32px rgba(33,37,41,.32), inset 0 1px 0 rgba(255,255,255,.14);
+        color: #fff; line-height: 1.25; padding: 14px 20px;
       }
-      .summary-inner {
-        max-width: 560px;
-        margin: 0 auto;
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 16px;
-      }
-      .summary .net-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px; color: #CED4DA; }
-      .summary .net-value { font-size: 27px; font-weight: 700; line-height: 1.1; color: var(--orange); font-variant-numeric: tabular-nums; }
+      .summary-inner { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+      .summary .net-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px; color: #CED4DA; }
+      .summary .net-value { font-size: 27px; font-weight: 700; line-height: 1.15; color: var(--orange); font-variant-numeric: tabular-nums; }
       .summary .ppl { text-align: right; }
-      .summary .ppl-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px; color: #CED4DA; }
+      .summary .ppl-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px; color: #CED4DA; }
       .summary .ppl-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+      /* Splash — logo exactly as-is, static; one plain loading bar */
+      #splash {
+        position: fixed; inset: 0; z-index: 9999; background: #212529; color: #fff;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+        padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
+        text-align: center; opacity: 1; visibility: visible;
+        transition: opacity .3s ease, visibility .3s ease; cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #splash.splash-done { opacity: 0; visibility: hidden; pointer-events: none; }
+      .splash-mark { display: flex; align-items: center; gap: 4px; font-size: 44px; font-weight: 700; letter-spacing: 5px; line-height: 1; color: #fff; }
+      .splash-bracket { color: var(--orange); font-weight: 400; }
+      .splash-sub { font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: #CED4DA; }
+      .splash-bar { width: 184px; height: 3px; margin-top: 10px; background: rgba(255,255,255,.16); border-radius: 999px; overflow: hidden; }
+      .splash-bar i { display: block; height: 100%; width: 0; background: var(--orange); border-radius: 999px; animation: splash-fill .9s linear forwards; }
+      @keyframes splash-fill { from { width: 0; } to { width: 100%; } }
+      @media (prefers-reduced-motion: reduce) {
+        .splash-bar i { animation-duration: .2s; }
+        .seg button, .stepper button, .actions button { transition: none; }
+        html { scroll-behavior: auto; }
+      }
     </style>
   </head>
   <body>
+    <div id="splash" role="status" aria-label="Loading OPPEIN Kitchen Calculator">
+      <div class="splash-mark" aria-hidden="true"><span class="splash-bracket">[</span><span>OPPEIN</span><span class="splash-bracket">]</span></div>
+      <div class="splash-sub">Kitchen Calculator</div>
+      <div class="splash-bar" aria-hidden="true"><i></i></div>
+    </div>
+
     <main>
       <div class="wrap">
-      <h1><img src="logo.png" alt="OPPEIN" style="height:30px;width:auto;vertical-align:-5px" /> Kitchen Calculator</h1>
-      <p class="sub">Rough quote by the linear foot — same rates and math as the order book calculator.</p>
+      <header class="app-header">
+        <h1><img src="logo.png" alt="OPPEIN" style="height:30px;vertical-align:-6px" /> Kitchen Calculator</h1>
+        <p class="sub">Rough quote by the linear foot — same rates and math as the order book calculator.</p>
+      </header>
 
-      <section aria-labelledby="h-line">
+      <section class="card" aria-labelledby="h-line">
         <h2 id="h-line">Line &amp; Box</h2>
-        <span class="field-label" id="lbl-line">Cabinet line</span>
-        <div class="seg" role="group" aria-labelledby="lbl-line" id="seg-line">
-          <button type="button" data-value="Regular" aria-pressed="true">Regular</button>
-          <button type="button" data-value="GOLA" aria-pressed="false">GOLA</button>
+        <div class="field">
+          <span class="field-label" id="lbl-line">Cabinet line</span>
+          <div class="seg" role="group" aria-labelledby="lbl-line" id="seg-line">
+            <button type="button" data-value="Regular" aria-pressed="true">Regular</button>
+            <button type="button" data-value="GOLA" aria-pressed="false">GOLA</button>
+          </div>
         </div>
-
-        <span class="field-label" id="lbl-box">Box material</span>
-        <div class="seg" role="group" aria-labelledby="lbl-box" id="seg-box">
-          <button type="button" data-value="PB" aria-pressed="true">PB — Particle Board</button>
-          <button type="button" data-value="PLY" aria-pressed="false">PLY — Plywood</button>
+        <div class="field">
+          <span class="field-label" id="lbl-box">Box material</span>
+          <div class="seg" role="group" aria-labelledby="lbl-box" id="seg-box">
+            <button type="button" data-value="PB" aria-pressed="true">PB — Particle Board</button>
+            <button type="button" data-value="PLY" aria-pressed="false">PLY — Plywood</button>
+          </div>
+          <p class="seg-note" id="box-note" hidden>GOLA is PB only — box set to PB automatically.</p>
         </div>
-        <p class="seg-note" id="box-note" hidden>GOLA is PB only — box set to PB automatically.</p>
       </section>
 
-      <section aria-labelledby="h-colour">
+      <section class="card" aria-labelledby="h-colour">
         <h2 id="h-colour">Door Colours</h2>
-        <label class="field-label" for="sel-lowers">Lowers door colour</label>
-        <select id="sel-lowers"></select>
-        <label class="field-label" for="sel-uppers">Uppers door colour <span class="hint">— blank = same as lowers</span></label>
-        <select id="sel-uppers"></select>
+        <div class="field">
+          <label class="field-label" for="sel-lowers">Lowers door colour</label>
+          <select id="sel-lowers"></select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="sel-uppers">Uppers door colour <span class="hint">— blank = same as lowers</span></label>
+          <select id="sel-uppers"></select>
+        </div>
       </section>
 
-      <section aria-labelledby="h-measure">
+      <section class="card" aria-labelledby="h-measure">
         <h2 id="h-measure">Measurements (linear feet)</h2>
 
         <div class="measure">
           <span class="field-label" id="lbl-base">Base cabinets</span>
           <div class="stepper">
             <button type="button" data-step="-1" data-target="in-base" aria-label="Decrease base feet">−</button>
-            <input type="number" id="in-base" value="10" min="0" step="0.5" inputmode="decimal" aria-labelledby="lbl-base" />
+            <input type="number" id="in-base" placeholder="0" min="0" step="0.5" inputmode="decimal" aria-labelledby="lbl-base" />
             <button type="button" data-step="1" data-target="in-base" aria-label="Increase base feet">+</button>
           </div>
         </div>
@@ -303,10 +309,10 @@
           <span class="field-label" id="lbl-wall">Wall cabinets</span>
           <div class="stepper">
             <button type="button" data-step="-1" data-target="in-wall" aria-label="Decrease wall feet">−</button>
-            <input type="number" id="in-wall" value="10" min="0" step="0.5" inputmode="decimal" aria-labelledby="lbl-wall" />
+            <input type="number" id="in-wall" placeholder="0" min="0" step="0.5" inputmode="decimal" aria-labelledby="lbl-wall" />
             <button type="button" data-step="1" data-target="in-wall" aria-label="Increase wall feet">+</button>
           </div>
-          <div class="height-seg">
+          <div class="sub-field">
             <span class="field-label" id="lbl-wallh">Wall height</span>
             <div class="seg" role="group" aria-labelledby="lbl-wallh" id="seg-wallh">
               <button type="button" data-value="30" aria-pressed="true">30″</button>
@@ -320,10 +326,10 @@
           <span class="field-label" id="lbl-tall">Tall cabinets</span>
           <div class="stepper">
             <button type="button" data-step="-1" data-target="in-tall" aria-label="Decrease tall feet">−</button>
-            <input type="number" id="in-tall" value="2" min="0" step="0.5" inputmode="decimal" aria-labelledby="lbl-tall" />
+            <input type="number" id="in-tall" placeholder="0" min="0" step="0.5" inputmode="decimal" aria-labelledby="lbl-tall" />
             <button type="button" data-step="1" data-target="in-tall" aria-label="Increase tall feet">+</button>
           </div>
-          <div class="height-seg">
+          <div class="sub-field">
             <span class="field-label" id="lbl-tallh">Tall height</span>
             <div class="seg" role="group" aria-labelledby="lbl-tallh" id="seg-tallh">
               <button type="button" data-value="84" aria-pressed="true">84″</button>
@@ -334,43 +340,108 @@
         </div>
       </section>
 
-      <section aria-labelledby="h-options">
+      <section class="card" aria-labelledby="h-options">
         <h2 id="h-options">Options</h2>
-        <span class="field-label" id="lbl-asm">Assembly</span>
-        <div class="seg" role="group" aria-labelledby="lbl-asm" id="seg-asm">
-          <button type="button" data-value="RTA" aria-pressed="true">RTA (flat-pack)</button>
-          <button type="button" data-value="Assembled" aria-pressed="false">Assembled</button>
-        </div>
-
-        <label class="field-label" for="sel-tier">Dealer tier / multiplier</label>
-        <select id="sel-tier"></select>
-
-        <div class="two-col" style="margin-top:14px;">
-          <div>
-            <span class="field-label" id="lbl-crown">Crown moulding</span>
-            <div class="seg" role="group" aria-labelledby="lbl-crown" id="seg-crown">
-              <button type="button" data-value="No" aria-pressed="true">No</button>
-              <button type="button" data-value="Yes" aria-pressed="false">Yes</button>
-            </div>
+        <div class="field">
+          <span class="field-label" id="lbl-asm">Assembly</span>
+          <div class="seg" role="group" aria-labelledby="lbl-asm" id="seg-asm">
+            <button type="button" data-value="RTA" aria-pressed="true">RTA (flat-pack)</button>
+            <button type="button" data-value="Assembled" aria-pressed="false">Assembled</button>
           </div>
-          <div>
-            <span class="field-label" id="lbl-panels">Finish panels</span>
-            <div class="seg" role="group" aria-labelledby="lbl-panels" id="seg-panels">
-              <button type="button" data-value="No" aria-pressed="true">No</button>
-              <button type="button" data-value="Yes" aria-pressed="false">Yes</button>
-            </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="sel-tier">Dealer tier / multiplier</label>
+          <select id="sel-tier"></select>
+        </div>
+        <div class="field">
+          <span class="field-label" id="lbl-crown">Crown moulding</span>
+          <div class="seg" role="group" aria-labelledby="lbl-crown" id="seg-crown">
+            <button type="button" data-value="No" aria-pressed="true">No</button>
+            <button type="button" data-value="Yes" aria-pressed="false">Yes</button>
           </div>
         </div>
       </section>
 
-      <section aria-labelledby="h-estimate">
+      <section class="card" aria-labelledby="h-panels">
+        <h2 id="h-panels">Finish Panels</h2>
+
+        <div class="field">
+          <span class="field-label" id="lbl-panels-master">Finish panels required</span>
+          <div class="seg" role="group" aria-labelledby="lbl-panels-master" id="seg-panels-master">
+            <button type="button" data-value="No" aria-pressed="true">No</button>
+            <button type="button" data-value="Yes" aria-pressed="false">Yes</button>
+          </div>
+        </div>
+
+        <div class="panels-collapse" id="panels-detail" aria-hidden="true">
+        <div class="panels-collapse-inner">
+
+        <div class="panel-row">
+          <div class="panel-head">
+            <span class="field-label" id="lbl-ref">REF panels</span>
+            <div class="seg" role="group" aria-labelledby="lbl-ref" id="seg-ref">
+              <button type="button" data-value="No" aria-pressed="true">No</button>
+              <button type="button" data-value="Yes" aria-pressed="false">Yes</button>
+            </div>
+          </div>
+          <div class="panel-qty" id="qty-ref" hidden>
+            <span class="field-label" id="lbl-refq">Quantity — REF2496</span>
+            <div class="stepper small">
+              <button type="button" data-step="-1" data-target="in-ref" data-int="1" aria-label="Decrease REF quantity">−</button>
+              <input type="number" id="in-ref" placeholder="0" min="0" step="1" inputmode="numeric" aria-labelledby="lbl-refq" />
+              <button type="button" data-step="1" data-target="in-ref" data-int="1" aria-label="Increase REF quantity">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-row">
+          <div class="panel-head">
+            <span class="field-label" id="lbl-bep">BEP panels</span>
+            <div class="seg" role="group" aria-labelledby="lbl-bep" id="seg-bep">
+              <button type="button" data-value="No" aria-pressed="true">No</button>
+              <button type="button" data-value="Yes" aria-pressed="false">Yes</button>
+            </div>
+          </div>
+          <div class="panel-qty" id="qty-bep" hidden>
+            <span class="field-label" id="lbl-bepq">Quantity — BEP24</span>
+            <div class="stepper small">
+              <button type="button" data-step="-1" data-target="in-bep" data-int="1" aria-label="Decrease BEP quantity">−</button>
+              <input type="number" id="in-bep" placeholder="0" min="0" step="1" inputmode="numeric" aria-labelledby="lbl-bepq" />
+              <button type="button" data-step="1" data-target="in-bep" data-int="1" aria-label="Increase BEP quantity">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-row">
+          <div class="panel-head">
+            <span class="field-label" id="lbl-wep">WEP panels</span>
+            <div class="seg" role="group" aria-labelledby="lbl-wep" id="seg-wep">
+              <button type="button" data-value="No" aria-pressed="true">No</button>
+              <button type="button" data-value="Yes" aria-pressed="false">Yes</button>
+            </div>
+          </div>
+          <div class="panel-qty" id="qty-wep" hidden>
+            <span class="field-label" id="lbl-wepq">Quantity — WEP at wall height</span>
+            <div class="stepper small">
+              <button type="button" data-step="-1" data-target="in-wep" data-int="1" aria-label="Decrease WEP quantity">−</button>
+              <input type="number" id="in-wep" placeholder="0" min="0" step="1" inputmode="numeric" aria-labelledby="lbl-wepq" />
+              <button type="button" data-step="1" data-target="in-wep" data-int="1" aria-label="Increase WEP quantity">+</button>
+            </div>
+          </div>
+        </div>
+
+        </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="h-estimate">
         <h2 id="h-estimate">Estimate</h2>
         <div class="breakdown">
           <table>
             <tbody id="breakdown-body"></tbody>
           </table>
         </div>
-        <p class="hint" style="margin:10px 0 0;">Price per Lft = NET TOTAL ÷ (Base Lft + Tall Lft) — the full net loaded onto the floor run.</p>
+        <p class="est-note">Price per Lft = NET TOTAL ÷ (Base Lft + Tall Lft) — the full net loaded onto the floor run.</p>
         <div class="actions">
           <button type="button" class="primary" id="btn-copy">Copy estimate</button>
           <button type="button" id="btn-reset">Reset</button>
@@ -384,7 +455,7 @@
       <div class="summary-inner">
         <div>
           <div class="net-label">Net Total</div>
-          <div class="net-value" id="sum-net">$0</div>
+          <div class="net-value" id="sum-net">$0.00</div>
         </div>
         <div class="ppl">
           <div class="ppl-label">Price per Lft</div>
@@ -395,7 +466,7 @@
 
     <script>
       var DATA = {
-       "source": "OPPEIN 2026-2027 order forms (Regular + GOLA Data base), rates as built into OPPEIN_Order_Book_2026-2027_Combined.xlsx Calculator on 2026-11-18/19",
+       "source": "OPPEIN 2026-2027 order forms; rates as built into the combined order workbook Calculator, updated 2026-11-19 (toe kick inside Base; panels = REF2496 + BEP24 + WEP by wall height, one each; bep field = BEP24 price)",
        "colours": {
         "Regular": ["MPW","MNW","MSO","PGW","SSW","WSS","BSS","GSS","PGA","PGG","PMW","PMB","PMA","PMG","KNW","SPW"],
         "GOLA": ["PGW","PMW","PMA","PMB","PGG","PMG","PGA","PGB","PMC","LTW","WCE","VO","GVO","NCW"]
@@ -419,52 +490,52 @@
         {"tier":"H","mult":0.65,"label":"35% OFF - Trial / One-Time"}
        ],
        "rates": {
-        "Regular|PB|MPW": {"base":205,"wall30":121,"wall36":141,"wall42":165,"tall84":423,"tall90":445,"tall96":465,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
-        "Regular|PB|MNW": {"base":205,"wall30":121,"wall36":141,"wall42":165,"tall84":423,"tall90":445,"tall96":465,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
-        "Regular|PB|MSO": {"base":205,"wall30":121,"wall36":141,"wall42":165,"tall84":423,"tall90":445,"tall96":465,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
-        "Regular|PB|PGW": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PB|SSW": {"base":278,"wall30":194,"wall36":228,"wall42":267,"tall84":643,"tall90":680,"tall96":717,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PB|WSS": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PB|BSS": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PB|GSS": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PB|PGA": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PB|PGG": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PB|PMW": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PB|PMB": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PB|PMA": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PB|PMG": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PB|KNW": {"base":236,"wall30":153,"wall36":179,"wall42":209,"tall84":493,"tall90":519,"tall96":545,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
-        "Regular|PB|SPW": {"base":218,"wall30":135,"wall36":157,"wall42":184,"tall84":444,"tall90":467,"tall96":489,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
-        "Regular|PLY|MPW": {"base":267,"wall30":168,"wall36":189,"wall42":227,"tall84":593,"tall90":621,"tall96":648,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
-        "Regular|PLY|MNW": {"base":267,"wall30":168,"wall36":189,"wall42":227,"tall84":593,"tall90":621,"tall96":648,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
-        "Regular|PLY|MSO": {"base":267,"wall30":168,"wall36":189,"wall42":227,"tall84":593,"tall90":621,"tall96":648,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
-        "Regular|PLY|PGW": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PLY|SSW": {"base":340,"wall30":241,"wall36":276,"wall42":329,"tall84":772,"tall90":816,"tall96":860,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PLY|WSS": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PLY|BSS": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PLY|GSS": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PLY|PGA": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PLY|PGG": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PLY|PMW": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PLY|PMB": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PLY|PMA": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PLY|PMG": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "Regular|PLY|KNW": {"base":299,"wall30":200,"wall36":227,"wall42":271,"tall84":650,"tall90":683,"tall96":716,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
-        "Regular|PLY|SPW": {"base":280,"wall30":181,"wall36":205,"wall42":245,"tall84":610,"tall90":640,"tall96":668,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
-        "GOLA|PB|PGW": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "GOLA|PB|PMW": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "GOLA|PB|PMA": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "GOLA|PB|PMB": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "GOLA|PB|PGG": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "GOLA|PB|PMG": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "GOLA|PB|PGA": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "GOLA|PB|PGB": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "GOLA|PB|PMC": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
-        "GOLA|PB|LTW": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":283,"wep30":93,"wep36":112,"wep42":130,"ref":480},
-        "GOLA|PB|WCE": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":283,"wep30":93,"wep36":112,"wep42":130,"ref":480},
-        "GOLA|PB|VO": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":283,"wep30":93,"wep36":112,"wep42":130,"ref":480},
-        "GOLA|PB|GVO": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":283,"wep30":93,"wep36":112,"wep42":130,"ref":480},
-        "GOLA|PB|NCW": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":283,"wep30":93,"wep36":112,"wep42":130,"ref":480}
+        "Regular|PB|MPW": {"base":205,"wall30":121,"wall36":141,"wall42":165,"tall84":423,"tall90":445,"tall96":465,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":89,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PB|MNW": {"base":205,"wall30":121,"wall36":141,"wall42":165,"tall84":423,"tall90":445,"tall96":465,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":89,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PB|MSO": {"base":205,"wall30":121,"wall36":141,"wall42":165,"tall84":423,"tall90":445,"tall96":465,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":89,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PB|PGW": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|SSW": {"base":278,"wall30":194,"wall36":228,"wall42":267,"tall84":643,"tall90":680,"tall96":717,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|WSS": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|BSS": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|GSS": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|PGA": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|PGG": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|PMW": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|PMB": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|PMA": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|PMG": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|KNW": {"base":236,"wall30":153,"wall36":179,"wall42":209,"tall84":493,"tall90":519,"tall96":545,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":89,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PB|SPW": {"base":218,"wall30":135,"wall36":157,"wall42":184,"tall84":444,"tall90":467,"tall96":489,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":89,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PLY|MPW": {"base":267,"wall30":168,"wall36":189,"wall42":227,"tall84":593,"tall90":621,"tall96":648,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":89,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PLY|MNW": {"base":267,"wall30":168,"wall36":189,"wall42":227,"tall84":593,"tall90":621,"tall96":648,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":89,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PLY|MSO": {"base":267,"wall30":168,"wall36":189,"wall42":227,"tall84":593,"tall90":621,"tall96":648,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":89,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PLY|PGW": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|SSW": {"base":340,"wall30":241,"wall36":276,"wall42":329,"tall84":772,"tall90":816,"tall96":860,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|WSS": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|BSS": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|GSS": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|PGA": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|PGG": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|PMW": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|PMB": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|PMA": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|PMG": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|KNW": {"base":299,"wall30":200,"wall36":227,"wall42":271,"tall84":650,"tall90":683,"tall96":716,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":89,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PLY|SPW": {"base":280,"wall30":181,"wall36":205,"wall42":245,"tall84":610,"tall90":640,"tall96":668,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":89,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "GOLA|PB|PGW": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PMW": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PMA": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PMB": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PGG": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PMG": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PGA": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PGB": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PMC": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":170,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|LTW": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":204,"wep30":93,"wep36":112,"wep42":130,"ref":480},
+        "GOLA|PB|WCE": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":204,"wep30":93,"wep36":112,"wep42":130,"ref":480},
+        "GOLA|PB|VO": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":204,"wep30":93,"wep36":112,"wep42":130,"ref":480},
+        "GOLA|PB|GVO": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":204,"wep30":93,"wep36":112,"wep42":130,"ref":480},
+        "GOLA|PB|NCW": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":204,"wep30":93,"wep36":112,"wep42":130,"ref":480}
        }
       };
 
@@ -477,18 +548,14 @@
         tallH: "84",
         asm: "RTA",
         crown: "No",
-        panels: "No"
+        panelsMaster: "No",
+        ref: "No",
+        bep: "No",
+        wep: "No"
       };
 
       function $(id) { return document.getElementById(id); }
 
-      function segValue(id) {
-        var btns = $(id).querySelectorAll("button");
-        for (var i = 0; i < btns.length; i++) {
-          if (btns[i].getAttribute("aria-pressed") === "true") return btns[i].getAttribute("data-value");
-        }
-        return btns[0].getAttribute("data-value");
-      }
       function segSet(id, value) {
         var btns = $(id).querySelectorAll("button");
         for (var i = 0; i < btns.length; i++) {
@@ -522,6 +589,10 @@
       }
       function num(id) {
         var v = parseFloat($(id).value);
+        return (isNaN(v) || v < 0) ? 0 : v;
+      }
+      function qty(id) {
+        var v = parseInt($(id).value, 10);
         return (isNaN(v) || v < 0) ? 0 : v;
       }
 
@@ -585,6 +656,18 @@
         $("box-note").hidden = !isGola;
       }
 
+      function refreshPanels() {
+        var masterOn = state.panelsMaster === "Yes";
+        var detail = $("panels-detail");
+        if (detail) {
+          if (masterOn) { detail.classList.add("open"); detail.setAttribute("aria-hidden", "false"); }
+          else { detail.classList.remove("open"); detail.setAttribute("aria-hidden", "true"); }
+        }
+        $("qty-ref").hidden = !(masterOn && state.ref === "Yes");
+        $("qty-bep").hidden = !(masterOn && state.bep === "Yes");
+        $("qty-wep").hidden = !(masterOn && state.wep === "Yes");
+      }
+
       var lastResult = null;
 
       function calc() {
@@ -599,21 +682,32 @@
         var baseL = num("in-base"), wallL = num("in-wall"), tallL = num("in-tall");
         var wallH = state.wallH, tallH = state.tallH;
 
-        var baseAmt = baseL * rLow.base;
+        var tkPcs = (baseL + tallL) > 0 ? Math.ceil((baseL + tallL) / 8) : 0;
+        var tkAmt = tkPcs * rLow.tk8;
+        var baseAmt = baseL * rLow.base + (baseL > 0 || tallL > 0 ? tkAmt : 0);
+        if (baseL === 0 && tallL === 0) { baseAmt = 0; tkAmt = 0; tkPcs = 0; }
+        else if (baseL === 0) { baseAmt = 0; }
         var wallAmt = wallL * rUp["wall" + wallH];
         var tallAmt = tallL * rLow["tall" + tallH];
+        /* Toe kick belongs to the floor run: if only tall feet exist, attach TK to tall line total via baseAmt=0 handling —
+           keep workbook behaviour: TK counted once per 8 ft of base+tall and shown inside Base line.
+           When base is 0 but tall > 0, the TK amount still applies to the run; include it in tallAmt display total. */
+        if (baseL === 0 && tallL > 0) { tallAmt = tallAmt + tkAmt; }
 
         var crownAmt = 0, crownPcs = 0;
         if (state.crown === "Yes") {
-          crownPcs = Math.ceil(wallL / 8);
+          crownPcs = wallL > 0 ? Math.ceil(wallL / 8) : 0;
           crownAmt = crownPcs * rUp.crown;
         }
 
-        var panelsAmt = 0, tkPcs = 0;
-        if (state.panels === "Yes") {
-          tkPcs = Math.ceil((baseL + tallL) / 8);
-          panelsAmt = tkPcs * rLow.tk8 + 2 * rLow.bep + 2 * rUp["wep" + wallH] + 2 * rLow.ref;
-        }
+        var masterOn = state.panelsMaster === "Yes";
+        var refQty = (masterOn && state.ref === "Yes") ? qty("in-ref") : 0;
+        var bepQty = (masterOn && state.bep === "Yes") ? qty("in-bep") : 0;
+        var wepQty = (masterOn && state.wep === "Yes") ? qty("in-wep") : 0;
+        var refAmt = refQty * rLow.ref;
+        var bepAmt = bepQty * rLow.bep;
+        var wepAmt = wepQty * rUp["wep" + wallH];
+        var panelsAmt = refAmt + bepAmt + wepAmt;
 
         var subtotal = baseAmt + wallAmt + tallAmt + crownAmt + panelsAmt;
 
@@ -637,9 +731,13 @@
 
         lastResult = {
           line: line, box: box, lowers: lowers, uppers: uppers,
+          panelsMaster: state.panelsMaster,
           baseL: baseL, wallL: wallL, tallL: tallL, wallH: wallH, tallH: tallH,
           baseAmt: baseAmt, wallAmt: wallAmt, tallAmt: tallAmt,
-          crownAmt: crownAmt, crownPcs: crownPcs, panelsAmt: panelsAmt, tkPcs: tkPcs,
+          crownAmt: crownAmt, crownPcs: crownPcs,
+          refQty: refQty, bepQty: bepQty, wepQty: wepQty,
+          refAmt: refAmt, bepAmt: bepAmt, wepAmt: wepAmt, panelsAmt: panelsAmt,
+          tkPcs: tkPcs, tkAmt: tkAmt,
           subtotal: subtotal, discount: discount, mult: mult, tier: tierVal,
           asmAmt: asmAmt, net: net, ppl: ppl,
           rLow: rLow, rUp: rUp
@@ -655,8 +753,9 @@
 
       function render(r) {
         var html = "";
-        html += row("Base cabinets",
-          ft(r.baseL) + " ft × " + money(r.rLow.base) + "/Lft · " + r.lowers + " / " + r.box,
+        html += row("Base cabinets (incl. toe kick)",
+          ft(r.baseL) + " ft × " + money(r.rLow.base) + "/Lft · " + r.lowers + " / " + r.box +
+          " + " + r.tkPcs + "× TK8 " + money(r.rLow.tk8) + " toe kick",
           money(r.baseAmt));
         html += row("Wall cabinets " + r.wallH + "″",
           ft(r.wallL) + " ft × " + money(r.rUp["wall" + r.wallH]) + "/Lft · " + r.uppers,
@@ -671,13 +770,22 @@
         } else {
           html += row("Crown moulding", "Not included", "—", "off");
         }
-        if (state.panels === "Yes") {
-          html += row("Finish panels",
-            r.tkPcs + "× TK8 " + money(r.rLow.tk8) + " · 2× BEP " + money(r.rLow.bep) +
-            " · 2× WEP" + r.wallH + " " + money(r.rUp["wep" + r.wallH]) + " · 2× REF " + money(r.rLow.ref),
-            money(r.panelsAmt));
-        } else {
+        if (r.panelsMaster !== "Yes") {
           html += row("Finish panels", "Not included", "—", "off");
+        } else if (state.ref === "Yes") {
+          html += row("REF panels", r.refQty + "× REF2496 × " + money(r.rLow.ref) + " · " + r.lowers, money(r.refAmt));
+        } else {
+          html += row("REF panels", "Not included", "—", "off");
+        }
+        if (r.panelsMaster === "Yes" && state.bep === "Yes") {
+          html += row("BEP panels", r.bepQty + "× BEP24 × " + money(r.rLow.bep) + " · " + r.lowers, money(r.bepAmt));
+        } else if (r.panelsMaster === "Yes") {
+          html += row("BEP panels", "Not included", "—", "off");
+        }
+        if (r.panelsMaster === "Yes" && state.wep === "Yes") {
+          html += row("WEP panels", r.wepQty + "× WEP" + r.wallH + " × " + money(r.rUp["wep" + r.wallH]) + " · " + r.uppers, money(r.wepAmt));
+        } else if (r.panelsMaster === "Yes") {
+          html += row("WEP panels", "Not included", "—", "off");
         }
         html += row("Cabinets subtotal", "", money(r.subtotal), "subtotal");
         if (r.mult !== null) {
@@ -703,18 +811,25 @@
       }
 
       function resetAll() {
-        state = { line: "Regular", box: "PB", lowers: "MNW", uppers: "", wallH: "30", tallH: "84", asm: "RTA", crown: "No", panels: "No" };
+        state = { line: "Regular", box: "PB", lowers: "MNW", uppers: "", wallH: "30", tallH: "84", asm: "RTA", crown: "No", panelsMaster: "No", ref: "No", bep: "No", wep: "No" };
         segSet("seg-line", "Regular");
         segSet("seg-wallh", "30");
         segSet("seg-tallh", "84");
         segSet("seg-asm", "RTA");
         segSet("seg-crown", "No");
-        segSet("seg-panels", "No");
-        $("in-base").value = 10;
-        $("in-wall").value = 10;
-        $("in-tall").value = 2;
+        segSet("seg-panels-master", "No");
+        segSet("seg-ref", "No");
+        segSet("seg-bep", "No");
+        segSet("seg-wep", "No");
+        $("in-base").value = "";
+        $("in-wall").value = "";
+        $("in-tall").value = "";
+        $("in-ref").value = "";
+        $("in-bep").value = "";
+        $("in-wep").value = "";
         $("sel-tier").value = "";
         refreshBox();
+        refreshPanels();
         buildColours();
         calc();
       }
@@ -732,23 +847,36 @@
       segWire("seg-tallh", function (v) { state.tallH = v; });
       segWire("seg-asm", function (v) { state.asm = v; });
       segWire("seg-crown", function (v) { state.crown = v; });
-      segWire("seg-panels", function (v) { state.panels = v; });
+      segWire("seg-panels-master", function (v) { state.panelsMaster = v; refreshPanels(); });
+      segWire("seg-ref", function (v) { state.ref = v; refreshPanels(); });
+      segWire("seg-bep", function (v) { state.bep = v; refreshPanels(); });
+      segWire("seg-wep", function (v) { state.wep = v; refreshPanels(); });
 
       $("sel-lowers").addEventListener("change", function () { state.lowers = this.value; calc(); });
       $("sel-uppers").addEventListener("change", function () { state.uppers = this.value; calc(); });
       $("sel-tier").addEventListener("change", calc);
 
-      ["in-base", "in-wall", "in-tall"].forEach(function (id) {
+      ["in-base", "in-wall", "in-tall", "in-ref", "in-bep", "in-wep"].forEach(function (id) {
         $(id).addEventListener("input", calc);
         $(id).addEventListener("change", calc);
       });
       document.querySelectorAll(".stepper button").forEach(function (b) {
         b.addEventListener("click", function () {
           var input = $(b.getAttribute("data-target"));
-          var v = parseFloat(input.value);
-          if (isNaN(v)) v = 0;
-          v = Math.max(0, Math.round((v + parseFloat(b.getAttribute("data-step"))) * 2) / 2);
-          input.value = v;
+          var step = parseFloat(b.getAttribute("data-step"));
+          var isInt = b.getAttribute("data-int") === "1";
+          var raw = input.value;
+          var v = parseFloat(raw);
+          if (raw === "" || isNaN(v)) {
+            if (step < 0) return; /* − does nothing at empty */
+            v = 0;
+          }
+          if (step < 0 && v <= 0) return; /* − does nothing at 0 */
+          v = v + step;
+          if (v < 0) v = 0;
+          if (isInt) v = Math.round(v);
+          else v = Math.round(v * 2) / 2;
+          input.value = v === 0 ? "" : v;
           calc();
         });
       });
@@ -761,11 +889,13 @@
         lines.push("OPPEIN Kitchen Estimate");
         lines.push("Line: " + r.line + " · Box: " + r.box);
         lines.push("Lowers: " + r.lowers + " · Uppers: " + r.uppers);
-        lines.push("Base: " + ft(r.baseL) + " ft — " + money(r.baseAmt));
+        lines.push("Base (incl. " + r.tkPcs + "x TK8 toe kick): " + ft(r.baseL) + " ft — " + money(r.baseAmt));
         lines.push("Wall (" + r.wallH + "in): " + ft(r.wallL) + " ft — " + money(r.wallAmt));
         lines.push("Tall (" + r.tallH + "in): " + ft(r.tallL) + " ft — " + money(r.tallAmt));
         if (state.crown === "Yes") lines.push("Crown moulding: " + money(r.crownAmt));
-        if (state.panels === "Yes") lines.push("Finish panels: " + money(r.panelsAmt));
+        if (r.panelsMaster === "Yes" && state.ref === "Yes") lines.push("REF panels ×" + r.refQty + ": " + money(r.refAmt));
+        if (r.panelsMaster === "Yes" && state.bep === "Yes") lines.push("BEP panels ×" + r.bepQty + ": " + money(r.bepAmt));
+        if (r.panelsMaster === "Yes" && state.wep === "Yes") lines.push("WEP panels ×" + r.wepQty + ": " + money(r.wepAmt));
         lines.push("Cabinets subtotal: " + money(r.subtotal));
         if (r.mult !== null) lines.push("Dealer discount (Tier " + r.tier + ", x" + r.mult + "): " + money(r.discount));
         if (state.asm === "Assembled") lines.push("Assembly: " + money(r.asmAmt));
@@ -792,8 +922,27 @@
 
       buildTiers();
       refreshBox();
+      refreshPanels();
       buildColours();
       calc();
+
+      /* Splash: static logo, plain loading bar fills, then plain fade-out (~1s). Tap to skip. */
+      (function () {
+        var splash = document.getElementById("splash");
+        if (!splash) return;
+        var done = false;
+        function hideSplash() {
+          if (done) return;
+          done = true;
+          splash.classList.add("splash-done");
+          setTimeout(function () {
+            if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+          }, 350);
+        }
+        splash.addEventListener("click", hideSplash);
+        splash.addEventListener("touchend", hideSplash, { passive: true });
+        setTimeout(hideSplash, 1000);
+      })();
     </script>
   </body>
 </html>
