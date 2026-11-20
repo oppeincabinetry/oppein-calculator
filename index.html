@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#212529" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="OPPEIN Calc" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" href="data:," />
+    <title>OPPEIN Kitchen Calculator</title>
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+    <style>
+      :root {
+        --orange: #EF6526;
+        --orange-dark: #D14E14;
+        --ink: #212529;
+        --ink-soft: #495057;
+        --muted: #868E96;
+        --line: #DEE2E6;
+        --bg: #FFFFFF;
+        --panel: #F8F9FA;
+        --panel-strong: #F1F3F5;
+        --good: #1E7A46;
+        --radius: 12px;
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; height: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Century Gothic", Futura, "Trebuchet MS", "Segoe UI", sans-serif;
+        font-size: 16px;
+        line-height: 1.45;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+      main {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+      }
+      .wrap {
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 8px 16px 20px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0 0 2px;
+        letter-spacing: .2px;
+      }
+      h1 .brand { color: var(--orange); }
+      .sub {
+        color: var(--ink-soft);
+        font-size: 14px;
+        margin: 0 0 12px;
+      }
+      section { margin-bottom: 16px; }
+      h2 {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: var(--ink-soft);
+        margin: 0 0 8px;
+        border-bottom: 2px solid var(--ink);
+        padding-bottom: 5px;
+      }
+      label.field-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 700;
+        margin: 10px 0 5px;
+      }
+      label.field-label:first-of-type { margin-top: 0; }
+      .hint { font-weight: 400; color: var(--muted); font-size: 13px; }
+
+      /* Segmented control */
+      .seg {
+        display: flex;
+        gap: 0;
+        border: 1.5px solid var(--ink);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .seg button {
+        flex: 1 1 0;
+        appearance: none;
+        border: 0;
+        border-right: 1.5px solid var(--ink);
+        background: #fff;
+        color: var(--ink);
+        font: inherit;
+        font-weight: 700;
+        font-size: 16px;
+        min-height: 50px;
+        padding: 10px 6px;
+        cursor: pointer;
+      }
+      .seg button:last-child { border-right: 0; }
+      .seg button[aria-pressed="true"] {
+        background: var(--orange);
+        color: #fff;
+      }
+      .seg button:disabled {
+        background: var(--panel-strong);
+        color: var(--muted);
+        cursor: not-allowed;
+      }
+      .seg-note { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+
+      select, input[type="number"] {
+        width: 100%;
+        font: inherit;
+        font-size: 17px;
+        min-height: 50px;
+        padding: 10px 12px;
+        border: 1.5px solid var(--ink);
+        border-radius: var(--radius);
+        background: #fff;
+        color: var(--ink);
+      }
+      select:focus, input:focus { outline: 3px solid rgba(239,101,38,.35); outline-offset: 1px; }
+
+      /* Steppers */
+      .measure {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px 12px;
+        align-items: end;
+        margin-bottom: 10px;
+      }
+      .measure .field-label { margin: 0; }
+      .stepper {
+        display: flex;
+        align-items: stretch;
+        border: 1.5px solid var(--ink);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .stepper button {
+        appearance: none;
+        border: 0;
+        background: var(--panel);
+        color: var(--ink);
+        font-size: 24px;
+        font-weight: 700;
+        width: 52px;
+        min-height: 50px;
+        cursor: pointer;
+        line-height: 1;
+      }
+      .stepper button:active { background: var(--panel-strong); }
+      .stepper input {
+        width: 76px;
+        border: 0;
+        border-left: 1.5px solid var(--line);
+        border-right: 1.5px solid var(--line);
+        border-radius: 0;
+        text-align: center;
+        font-size: 19px;
+        font-weight: 700;
+        min-height: 50px;
+        padding: 6px 2px;
+        -moz-appearance: textfield;
+        appearance: textfield;
+      }
+      .stepper input::-webkit-outer-spin-button,
+      .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      .height-seg { grid-column: 1 / -1; }
+      .height-seg .seg button { min-height: 44px; font-size: 15px; }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 380px) {
+        .two-col { grid-template-columns: 1fr; }
+        .stepper input { width: 62px; }
+      }
+
+      /* Breakdown */
+      .breakdown {
+        border: 1.5px solid var(--ink);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .breakdown table { width: 100%; border-collapse: collapse; }
+      .breakdown td {
+        padding: 10px 14px;
+        font-size: 16px;
+        vertical-align: top;
+      }
+      .breakdown td.amt { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 700; }
+      .breakdown tr + tr td { border-top: 1px solid var(--line); }
+      .breakdown .detail { display: block; font-size: 13px; color: var(--muted); font-weight: 400; }
+      .breakdown tr.subtotal td { background: var(--panel); font-weight: 700; }
+      .breakdown tr.discount td.amt { color: var(--good); }
+      .breakdown tr.net td {
+        background: var(--ink);
+        color: #fff;
+        font-size: 19px;
+        font-weight: 700;
+      }
+      .breakdown tr.net td.amt { color: var(--orange); }
+      .breakdown tr.off td { color: var(--muted); }
+      .breakdown tr.off td.amt { font-weight: 400; }
+
+      .actions { display: flex; gap: 10px; margin-top: 14px; }
+      .actions button {
+        flex: 1;
+        appearance: none;
+        font: inherit;
+        font-weight: 700;
+        font-size: 15px;
+        min-height: 48px;
+        border-radius: var(--radius);
+        cursor: pointer;
+        border: 1.5px solid var(--ink);
+        background: #fff;
+        color: var(--ink);
+      }
+      .actions button.primary { background: var(--orange); border-color: var(--orange-dark); color: #fff; }
+      .actions button:active { transform: translateY(1px); }
+      .copied { text-align: center; color: var(--good); font-size: 14px; min-height: 20px; margin: 8px 0 0; }
+
+      /* Sticky summary — in-flow bar pinned under the scrolling content */
+      .summary {
+        flex: 0 0 auto;
+        background: var(--ink);
+        color: #fff;
+        line-height: 1.25;
+        padding: 5px 16px calc(5px + env(safe-area-inset-bottom));
+        box-shadow: 0 -4px 18px rgba(0,0,0,.25);
+        z-index: 10;
+      }
+      .summary-inner {
+        max-width: 560px;
+        margin: 0 auto;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .summary .net-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px; color: #CED4DA; }
+      .summary .net-value { font-size: 27px; font-weight: 700; line-height: 1.1; color: var(--orange); font-variant-numeric: tabular-nums; }
+      .summary .ppl { text-align: right; }
+      .summary .ppl-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px; color: #CED4DA; }
+      .summary .ppl-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="wrap">
+      <h1><img src="logo.png" alt="OPPEIN" style="height:30px;width:auto;vertical-align:-5px" /> Kitchen Calculator</h1>
+      <p class="sub">Rough quote by the linear foot — same rates and math as the order book calculator.</p>
+
+      <section aria-labelledby="h-line">
+        <h2 id="h-line">Line &amp; Box</h2>
+        <span class="field-label" id="lbl-line">Cabinet line</span>
+        <div class="seg" role="group" aria-labelledby="lbl-line" id="seg-line">
+          <button type="button" data-value="Regular" aria-pressed="true">Regular</button>
+          <button type="button" data-value="GOLA" aria-pressed="false">GOLA</button>
+        </div>
+
+        <span class="field-label" id="lbl-box">Box material</span>
+        <div class="seg" role="group" aria-labelledby="lbl-box" id="seg-box">
+          <button type="button" data-value="PB" aria-pressed="true">PB — Particle Board</button>
+          <button type="button" data-value="PLY" aria-pressed="false">PLY — Plywood</button>
+        </div>
+        <p class="seg-note" id="box-note" hidden>GOLA is PB only — box set to PB automatically.</p>
+      </section>
+
+      <section aria-labelledby="h-colour">
+        <h2 id="h-colour">Door Colours</h2>
+        <label class="field-label" for="sel-lowers">Lowers door colour</label>
+        <select id="sel-lowers"></select>
+        <label class="field-label" for="sel-uppers">Uppers door colour <span class="hint">— blank = same as lowers</span></label>
+        <select id="sel-uppers"></select>
+      </section>
+
+      <section aria-labelledby="h-measure">
+        <h2 id="h-measure">Measurements (linear feet)</h2>
+
+        <div class="measure">
+          <span class="field-label" id="lbl-base">Base cabinets</span>
+          <div class="stepper">
+            <button type="button" data-step="-1" data-target="in-base" aria-label="Decrease base feet">−</button>
+            <input type="number" id="in-base" value="10" min="0" step="0.5" inputmode="decimal" aria-labelledby="lbl-base" />
+            <button type="button" data-step="1" data-target="in-base" aria-label="Increase base feet">+</button>
+          </div>
+        </div>
+
+        <div class="measure">
+          <span class="field-label" id="lbl-wall">Wall cabinets</span>
+          <div class="stepper">
+            <button type="button" data-step="-1" data-target="in-wall" aria-label="Decrease wall feet">−</button>
+            <input type="number" id="in-wall" value="10" min="0" step="0.5" inputmode="decimal" aria-labelledby="lbl-wall" />
+            <button type="button" data-step="1" data-target="in-wall" aria-label="Increase wall feet">+</button>
+          </div>
+          <div class="height-seg">
+            <span class="field-label" id="lbl-wallh">Wall height</span>
+            <div class="seg" role="group" aria-labelledby="lbl-wallh" id="seg-wallh">
+              <button type="button" data-value="30" aria-pressed="true">30″</button>
+              <button type="button" data-value="36" aria-pressed="false">36″</button>
+              <button type="button" data-value="42" aria-pressed="false">42″</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="measure">
+          <span class="field-label" id="lbl-tall">Tall cabinets</span>
+          <div class="stepper">
+            <button type="button" data-step="-1" data-target="in-tall" aria-label="Decrease tall feet">−</button>
+            <input type="number" id="in-tall" value="2" min="0" step="0.5" inputmode="decimal" aria-labelledby="lbl-tall" />
+            <button type="button" data-step="1" data-target="in-tall" aria-label="Increase tall feet">+</button>
+          </div>
+          <div class="height-seg">
+            <span class="field-label" id="lbl-tallh">Tall height</span>
+            <div class="seg" role="group" aria-labelledby="lbl-tallh" id="seg-tallh">
+              <button type="button" data-value="84" aria-pressed="true">84″</button>
+              <button type="button" data-value="90" aria-pressed="false">90″</button>
+              <button type="button" data-value="96" aria-pressed="false">96″</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="h-options">
+        <h2 id="h-options">Options</h2>
+        <span class="field-label" id="lbl-asm">Assembly</span>
+        <div class="seg" role="group" aria-labelledby="lbl-asm" id="seg-asm">
+          <button type="button" data-value="RTA" aria-pressed="true">RTA (flat-pack)</button>
+          <button type="button" data-value="Assembled" aria-pressed="false">Assembled</button>
+        </div>
+
+        <label class="field-label" for="sel-tier">Dealer tier / multiplier</label>
+        <select id="sel-tier"></select>
+
+        <div class="two-col" style="margin-top:14px;">
+          <div>
+            <span class="field-label" id="lbl-crown">Crown moulding</span>
+            <div class="seg" role="group" aria-labelledby="lbl-crown" id="seg-crown">
+              <button type="button" data-value="No" aria-pressed="true">No</button>
+              <button type="button" data-value="Yes" aria-pressed="false">Yes</button>
+            </div>
+          </div>
+          <div>
+            <span class="field-label" id="lbl-panels">Finish panels</span>
+            <div class="seg" role="group" aria-labelledby="lbl-panels" id="seg-panels">
+              <button type="button" data-value="No" aria-pressed="true">No</button>
+              <button type="button" data-value="Yes" aria-pressed="false">Yes</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="h-estimate">
+        <h2 id="h-estimate">Estimate</h2>
+        <div class="breakdown">
+          <table>
+            <tbody id="breakdown-body"></tbody>
+          </table>
+        </div>
+        <p class="hint" style="margin:10px 0 0;">Price per Lft = NET TOTAL ÷ (Base Lft + Tall Lft) — the full net loaded onto the floor run.</p>
+        <div class="actions">
+          <button type="button" class="primary" id="btn-copy">Copy estimate</button>
+          <button type="button" id="btn-reset">Reset</button>
+        </div>
+        <p class="copied" id="copied-msg" role="status"></p>
+      </section>
+      </div>
+    </main>
+
+    <footer class="summary" aria-live="polite">
+      <div class="summary-inner">
+        <div>
+          <div class="net-label">Net Total</div>
+          <div class="net-value" id="sum-net">$0</div>
+        </div>
+        <div class="ppl">
+          <div class="ppl-label">Price per Lft</div>
+          <div class="ppl-value" id="sum-ppl">—</div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      var DATA = {
+       "source": "OPPEIN 2026-2027 order forms (Regular + GOLA Data base), rates as built into OPPEIN_Order_Book_2026-2027_Combined.xlsx Calculator on 2026-11-18/19",
+       "colours": {
+        "Regular": ["MPW","MNW","MSO","PGW","SSW","WSS","BSS","GSS","PGA","PGG","PMW","PMB","PMA","PMG","KNW","SPW"],
+        "GOLA": ["PGW","PMW","PMA","PMB","PGG","PMG","PGA","PGB","PMC","LTW","WCE","VO","GVO","NCW"]
+       },
+       "boxes": {
+        "Regular": ["PB","PLY"],
+        "GOLA": ["PB"]
+       },
+       "defaultColour": {
+        "Regular": "MNW",
+        "GOLA": "PMW"
+       },
+       "tiers": [
+        {"tier":"A","mult":0.38,"label":"62% OFF - Strategic / Special Approval"},
+        {"tier":"B","mult":0.4,"label":"60% OFF - Strong Volume Showroom"},
+        {"tier":"C","mult":0.42,"label":"58% OFF - Showroom with Display"},
+        {"tier":"D","mult":0.45,"label":"55% OFF - Standard Showroom"},
+        {"tier":"E","mult":0.48,"label":"52% OFF - Standard Contractor"},
+        {"tier":"F","mult":0.52,"label":"48% OFF - Light Contractor"},
+        {"tier":"G","mult":0.55,"label":"45% OFF - Occasional Buyer"},
+        {"tier":"H","mult":0.65,"label":"35% OFF - Trial / One-Time"}
+       ],
+       "rates": {
+        "Regular|PB|MPW": {"base":205,"wall30":121,"wall36":141,"wall42":165,"tall84":423,"tall90":445,"tall96":465,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PB|MNW": {"base":205,"wall30":121,"wall36":141,"wall42":165,"tall84":423,"tall90":445,"tall96":465,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PB|MSO": {"base":205,"wall30":121,"wall36":141,"wall42":165,"tall84":423,"tall90":445,"tall96":465,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PB|PGW": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|SSW": {"base":278,"wall30":194,"wall36":228,"wall42":267,"tall84":643,"tall90":680,"tall96":717,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|WSS": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|BSS": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|GSS": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|PGA": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|PGG": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|PMW": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|PMB": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|PMA": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|PMG": {"base":259,"wall30":175,"wall36":206,"wall42":241,"tall84":552,"tall90":583,"tall96":613,"asmBase":8,"asmWall":6,"asmTall":15,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PB|KNW": {"base":236,"wall30":153,"wall36":179,"wall42":209,"tall84":493,"tall90":519,"tall96":545,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PB|SPW": {"base":218,"wall30":135,"wall36":157,"wall42":184,"tall84":444,"tall90":467,"tall96":489,"asmBase":8,"asmWall":6,"asmTall":15,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PLY|MPW": {"base":267,"wall30":168,"wall36":189,"wall42":227,"tall84":593,"tall90":621,"tall96":648,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PLY|MNW": {"base":267,"wall30":168,"wall36":189,"wall42":227,"tall84":593,"tall90":621,"tall96":648,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PLY|MSO": {"base":267,"wall30":168,"wall36":189,"wall42":227,"tall84":593,"tall90":621,"tall96":648,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PLY|PGW": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|SSW": {"base":340,"wall30":241,"wall36":276,"wall42":329,"tall84":772,"tall90":816,"tall96":860,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|WSS": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|BSS": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|GSS": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|PGA": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|PGG": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|PMW": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|PMB": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|PMA": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|PMG": {"base":321,"wall30":222,"wall36":254,"wall42":302,"tall84":702,"tall90":740,"tall96":778,"asmBase":8,"asmWall":6,"asmTall":14,"crown":230,"tk8":108,"bep":237,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "Regular|PLY|KNW": {"base":299,"wall30":200,"wall36":227,"wall42":271,"tall84":650,"tall90":683,"tall96":716,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "Regular|PLY|SPW": {"base":280,"wall30":181,"wall36":205,"wall42":245,"tall84":610,"tall90":640,"tall96":668,"asmBase":8,"asmWall":6,"asmTall":14,"crown":0,"tk8":75,"bep":123,"wep30":40,"wep36":48,"wep42":55,"ref":246},
+        "GOLA|PB|PGW": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PMW": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PMA": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PMB": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PGG": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PMG": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PGA": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PGB": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|PMC": {"base":226,"wall30":204,"wall36":236,"wall42":272,"tall84":411,"tall90":441,"tall96":470,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":108,"bep":236,"wep30":78,"wep36":94,"wep42":109,"ref":400},
+        "GOLA|PB|LTW": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":283,"wep30":93,"wep36":112,"wep42":130,"ref":480},
+        "GOLA|PB|WCE": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":283,"wep30":93,"wep36":112,"wep42":130,"ref":480},
+        "GOLA|PB|VO": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":283,"wep30":93,"wep36":112,"wep42":130,"ref":480},
+        "GOLA|PB|GVO": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":283,"wep30":93,"wep36":112,"wep42":130,"ref":480},
+        "GOLA|PB|NCW": {"base":244,"wall30":222,"wall36":257,"wall42":297,"tall84":438,"tall90":471,"tall96":504,"asmBase":7,"asmWall":6,"asmTall":14,"crown":0,"tk8":129,"bep":283,"wep30":93,"wep36":112,"wep42":130,"ref":480}
+       }
+      };
+
+      var state = {
+        line: "Regular",
+        box: "PB",
+        lowers: "MNW",
+        uppers: "",
+        wallH: "30",
+        tallH: "84",
+        asm: "RTA",
+        crown: "No",
+        panels: "No"
+      };
+
+      function $(id) { return document.getElementById(id); }
+
+      function segValue(id) {
+        var btns = $(id).querySelectorAll("button");
+        for (var i = 0; i < btns.length; i++) {
+          if (btns[i].getAttribute("aria-pressed") === "true") return btns[i].getAttribute("data-value");
+        }
+        return btns[0].getAttribute("data-value");
+      }
+      function segSet(id, value) {
+        var btns = $(id).querySelectorAll("button");
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].setAttribute("aria-pressed", btns[i].getAttribute("data-value") === value ? "true" : "false");
+        }
+      }
+      function segWire(id, onChange) {
+        $(id).addEventListener("click", function (e) {
+          var b = e.target.closest("button");
+          if (!b || b.disabled) return;
+          segSet(id, b.getAttribute("data-value"));
+          onChange(b.getAttribute("data-value"));
+          calc();
+        });
+      }
+
+      function money(v) {
+        var neg = v < 0;
+        var a = Math.abs(v);
+        var s = a.toLocaleString("en-CA", {
+          minimumFractionDigits: (Math.round(a * 100) % 100 === 0) ? 0 : 2,
+          maximumFractionDigits: 2
+        });
+        return (neg ? "-$" : "$") + s;
+      }
+      function money2(v) {
+        return "$" + v.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      function ft(v) {
+        return (Math.round(v * 100) / 100).toLocaleString("en-CA", { maximumFractionDigits: 2 });
+      }
+      function num(id) {
+        var v = parseFloat($(id).value);
+        return (isNaN(v) || v < 0) ? 0 : v;
+      }
+
+      function rateFor(line, box, colour) {
+        var key = line + "|" + box + "|" + colour;
+        if (DATA.rates[key]) return DATA.rates[key];
+        return DATA.rates[line + "|" + box + "|" + DATA.defaultColour[line]];
+      }
+      function effColour(line, picked) {
+        if (picked && DATA.colours[line].indexOf(picked) !== -1) return picked;
+        return DATA.defaultColour[line];
+      }
+
+      function buildColours() {
+        var colours = DATA.colours[state.line];
+        var low = $("sel-lowers"), up = $("sel-uppers");
+        low.innerHTML = "";
+        colours.forEach(function (c) {
+          var o = document.createElement("option");
+          o.value = c; o.textContent = c;
+          low.appendChild(o);
+        });
+        if (colours.indexOf(state.lowers) === -1) state.lowers = DATA.defaultColour[state.line];
+        low.value = state.lowers;
+
+        up.innerHTML = "";
+        var blank = document.createElement("option");
+        blank.value = ""; blank.textContent = "— Same as lowers —";
+        up.appendChild(blank);
+        colours.forEach(function (c) {
+          var o = document.createElement("option");
+          o.value = c; o.textContent = c;
+          up.appendChild(o);
+        });
+        if (state.uppers && colours.indexOf(state.uppers) === -1) state.uppers = "";
+        up.value = state.uppers;
+      }
+
+      function buildTiers() {
+        var sel = $("sel-tier");
+        sel.innerHTML = "";
+        var none = document.createElement("option");
+        none.value = ""; none.textContent = "None — full price";
+        sel.appendChild(none);
+        DATA.tiers.forEach(function (t) {
+          var o = document.createElement("option");
+          o.value = t.tier;
+          o.textContent = "Tier " + t.tier + " · ×" + t.mult + " · " + t.label;
+          sel.appendChild(o);
+        });
+      }
+
+      function refreshBox() {
+        var isGola = state.line === "GOLA";
+        if (isGola) state.box = "PB";
+        segSet("seg-box", state.box);
+        var btns = $("seg-box").querySelectorAll("button");
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].disabled = isGola && btns[i].getAttribute("data-value") === "PLY";
+        }
+        $("box-note").hidden = !isGola;
+      }
+
+      var lastResult = null;
+
+      function calc() {
+        var line = state.line;
+        var box = (line === "GOLA") ? "PB" : state.box;
+        var lowers = effColour(line, state.lowers);
+        var uppers = state.uppers ? effColour(line, state.uppers) : lowers;
+
+        var rLow = rateFor(line, box, lowers);
+        var rUp = rateFor(line, box, uppers);
+
+        var baseL = num("in-base"), wallL = num("in-wall"), tallL = num("in-tall");
+        var wallH = state.wallH, tallH = state.tallH;
+
+        var baseAmt = baseL * rLow.base;
+        var wallAmt = wallL * rUp["wall" + wallH];
+        var tallAmt = tallL * rLow["tall" + tallH];
+
+        var crownAmt = 0, crownPcs = 0;
+        if (state.crown === "Yes") {
+          crownPcs = Math.ceil(wallL / 8);
+          crownAmt = crownPcs * rUp.crown;
+        }
+
+        var panelsAmt = 0, tkPcs = 0;
+        if (state.panels === "Yes") {
+          tkPcs = Math.ceil((baseL + tallL) / 8);
+          panelsAmt = tkPcs * rLow.tk8 + 2 * rLow.bep + 2 * rUp["wep" + wallH] + 2 * rLow.ref;
+        }
+
+        var subtotal = baseAmt + wallAmt + tallAmt + crownAmt + panelsAmt;
+
+        var tierVal = $("sel-tier").value;
+        var mult = null;
+        if (tierVal) {
+          for (var i = 0; i < DATA.tiers.length; i++) {
+            if (DATA.tiers[i].tier === tierVal) mult = DATA.tiers[i].mult;
+          }
+        }
+        var discount = (mult === null) ? 0 : -subtotal * (1 - mult);
+
+        var asmAmt = 0;
+        if (state.asm === "Assembled") {
+          asmAmt = baseL * rLow.asmBase + wallL * rUp.asmWall + tallL * rLow.asmTall;
+        }
+
+        var net = subtotal + discount + asmAmt;
+        var floorFt = baseL + tallL;
+        var ppl = floorFt > 0 ? net / floorFt : null;
+
+        lastResult = {
+          line: line, box: box, lowers: lowers, uppers: uppers,
+          baseL: baseL, wallL: wallL, tallL: tallL, wallH: wallH, tallH: tallH,
+          baseAmt: baseAmt, wallAmt: wallAmt, tallAmt: tallAmt,
+          crownAmt: crownAmt, crownPcs: crownPcs, panelsAmt: panelsAmt, tkPcs: tkPcs,
+          subtotal: subtotal, discount: discount, mult: mult, tier: tierVal,
+          asmAmt: asmAmt, net: net, ppl: ppl,
+          rLow: rLow, rUp: rUp
+        };
+        render(lastResult);
+      }
+
+      function row(label, detail, amt, cls) {
+        return "<tr" + (cls ? " class=\"" + cls + "\"" : "") + "><td>" + label +
+          (detail ? "<span class=\"detail\">" + detail + "</span>" : "") +
+          "</td><td class=\"amt\">" + amt + "</td></tr>";
+      }
+
+      function render(r) {
+        var html = "";
+        html += row("Base cabinets",
+          ft(r.baseL) + " ft × " + money(r.rLow.base) + "/Lft · " + r.lowers + " / " + r.box,
+          money(r.baseAmt));
+        html += row("Wall cabinets " + r.wallH + "″",
+          ft(r.wallL) + " ft × " + money(r.rUp["wall" + r.wallH]) + "/Lft · " + r.uppers,
+          money(r.wallAmt));
+        html += row("Tall cabinets " + r.tallH + "″",
+          ft(r.tallL) + " ft × " + money(r.rLow["tall" + r.tallH]) + "/Lft · " + r.lowers,
+          money(r.tallAmt));
+        if (state.crown === "Yes") {
+          html += row("Crown moulding",
+            r.crownPcs + " pc × " + money(r.rUp.crown) + " (8 ft lengths, rounded up)",
+            money(r.crownAmt));
+        } else {
+          html += row("Crown moulding", "Not included", "—", "off");
+        }
+        if (state.panels === "Yes") {
+          html += row("Finish panels",
+            r.tkPcs + "× TK8 " + money(r.rLow.tk8) + " · 2× BEP " + money(r.rLow.bep) +
+            " · 2× WEP" + r.wallH + " " + money(r.rUp["wep" + r.wallH]) + " · 2× REF " + money(r.rLow.ref),
+            money(r.panelsAmt));
+        } else {
+          html += row("Finish panels", "Not included", "—", "off");
+        }
+        html += row("Cabinets subtotal", "", money(r.subtotal), "subtotal");
+        if (r.mult !== null) {
+          html += row("Less dealer discount",
+            "Tier " + r.tier + " · ×" + r.mult + " on cabinets",
+            money(r.discount), "discount");
+        } else {
+          html += row("Less dealer discount", "No tier selected", "—", "off");
+        }
+        if (state.asm === "Assembled") {
+          html += row("Assembly",
+            ft(r.baseL) + " ft × " + money(r.rLow.asmBase) + " + " + ft(r.wallL) + " ft × " + money(r.rUp.asmWall) +
+            " + " + ft(r.tallL) + " ft × " + money(r.rLow.asmTall) + " per Lft · never discounted",
+            money(r.asmAmt));
+        } else {
+          html += row("Assembly", "RTA — flat-pack, no assembly charge", "—", "off");
+        }
+        html += row("NET TOTAL", "", money2(r.net), "net");
+        $("breakdown-body").innerHTML = html;
+
+        $("sum-net").textContent = money2(r.net);
+        $("sum-ppl").textContent = (r.ppl === null) ? "—" : money2(r.ppl);
+      }
+
+      function resetAll() {
+        state = { line: "Regular", box: "PB", lowers: "MNW", uppers: "", wallH: "30", tallH: "84", asm: "RTA", crown: "No", panels: "No" };
+        segSet("seg-line", "Regular");
+        segSet("seg-wallh", "30");
+        segSet("seg-tallh", "84");
+        segSet("seg-asm", "RTA");
+        segSet("seg-crown", "No");
+        segSet("seg-panels", "No");
+        $("in-base").value = 10;
+        $("in-wall").value = 10;
+        $("in-tall").value = 2;
+        $("sel-tier").value = "";
+        refreshBox();
+        buildColours();
+        calc();
+      }
+
+      /* Wiring */
+      segWire("seg-line", function (v) {
+        state.line = v;
+        state.lowers = DATA.defaultColour[v];
+        state.uppers = "";
+        refreshBox();
+        buildColours();
+      });
+      segWire("seg-box", function (v) { state.box = v; });
+      segWire("seg-wallh", function (v) { state.wallH = v; });
+      segWire("seg-tallh", function (v) { state.tallH = v; });
+      segWire("seg-asm", function (v) { state.asm = v; });
+      segWire("seg-crown", function (v) { state.crown = v; });
+      segWire("seg-panels", function (v) { state.panels = v; });
+
+      $("sel-lowers").addEventListener("change", function () { state.lowers = this.value; calc(); });
+      $("sel-uppers").addEventListener("change", function () { state.uppers = this.value; calc(); });
+      $("sel-tier").addEventListener("change", calc);
+
+      ["in-base", "in-wall", "in-tall"].forEach(function (id) {
+        $(id).addEventListener("input", calc);
+        $(id).addEventListener("change", calc);
+      });
+      document.querySelectorAll(".stepper button").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var input = $(b.getAttribute("data-target"));
+          var v = parseFloat(input.value);
+          if (isNaN(v)) v = 0;
+          v = Math.max(0, Math.round((v + parseFloat(b.getAttribute("data-step"))) * 2) / 2);
+          input.value = v;
+          calc();
+        });
+      });
+
+      $("btn-reset").addEventListener("click", resetAll);
+      $("btn-copy").addEventListener("click", function () {
+        var r = lastResult;
+        if (!r) return;
+        var lines = [];
+        lines.push("OPPEIN Kitchen Estimate");
+        lines.push("Line: " + r.line + " · Box: " + r.box);
+        lines.push("Lowers: " + r.lowers + " · Uppers: " + r.uppers);
+        lines.push("Base: " + ft(r.baseL) + " ft — " + money(r.baseAmt));
+        lines.push("Wall (" + r.wallH + "in): " + ft(r.wallL) + " ft — " + money(r.wallAmt));
+        lines.push("Tall (" + r.tallH + "in): " + ft(r.tallL) + " ft — " + money(r.tallAmt));
+        if (state.crown === "Yes") lines.push("Crown moulding: " + money(r.crownAmt));
+        if (state.panels === "Yes") lines.push("Finish panels: " + money(r.panelsAmt));
+        lines.push("Cabinets subtotal: " + money(r.subtotal));
+        if (r.mult !== null) lines.push("Dealer discount (Tier " + r.tier + ", x" + r.mult + "): " + money(r.discount));
+        if (state.asm === "Assembled") lines.push("Assembly: " + money(r.asmAmt));
+        lines.push("NET TOTAL: " + money2(r.net));
+        lines.push("Price per Lft: " + (r.ppl === null ? "—" : money2(r.ppl)));
+        var text = lines.join("\n");
+        function done() {
+          $("copied-msg").textContent = "Estimate copied — paste it anywhere.";
+          setTimeout(function () { $("copied-msg").textContent = ""; }, 3000);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text); done(); });
+        } else { fallbackCopy(text); done(); }
+      });
+      function fallbackCopy(text) {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+
+      buildTiers();
+      refreshBox();
+      buildColours();
+      calc();
+    </script>
+  </body>
+</html>
